@@ -100,7 +100,7 @@ export default function Page() {
       <header className="board__header">
         <div className="board__heading">
         <h1>HSA Write Board</h1>
-        <p>ส่งข้อความที่คุณประทับใจขึ้นมาบนนี้ได้เลย.</p>
+        <p>บอกความภูมิใจหรือความสำเร็จในหนึ่งปีที่ผ่านมา</p>
         </div>
         <div className="qr-panel">
           <div className="qr-panel__card">
