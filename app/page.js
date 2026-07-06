@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 const NOTE_COLORS = ["#FFE98A", "#FFB6A3", "#B8D8C6", "#E6D4F2", "#A9D8F5"];
+const EMOJIS = ["😀", "😍", "🥰", "😂", "👏", "❤️", "👍", "🎉", "✨", "🙏"];
 
 function colorForId(id) {
   let hash = 0;
@@ -148,6 +149,21 @@ export default function Page() {
           onChange={(e) => setName(e.target.value)}
           maxLength={40}
         />
+        <div className="composer__emojis" aria-label="Add an emoji">
+          {EMOJIS.map((emoji) => (
+            <button
+              key={emoji}
+              type="button"
+              className="composer__emoji-button"
+              aria-label={`Add ${emoji}`}
+              onClick={() =>
+                setText((current) => `${current}${emoji}`.slice(0, 500))
+              }
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
         <textarea
           className="composer__text"
           placeholder="Write your note..."
@@ -277,6 +293,29 @@ export default function Page() {
           font-family: inherit;
           font-size: 1rem;
           resize: vertical;
+        }
+        .composer__emojis {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin-bottom: 10px;
+        }
+        .composer .composer__emoji-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          padding: 0;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 8px;
+          background: #1b2a2f;
+          font-size: 1.2rem;
+          line-height: 1;
+        }
+        .composer .composer__emoji-button:hover {
+          background: #31474f;
+          transform: translateY(-1px);
         }
         .composer__name:focus,
         .composer__text:focus {
