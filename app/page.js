@@ -40,9 +40,13 @@ export default function Page() {
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
+  const [postOnly, setPostOnly] = useState(false);
 
   useEffect(() => {
-    setSiteUrl(window.location.origin + "/");
+    setSiteUrl(window.location.origin + "/?post=1");
+    setPostOnly(
+      new URLSearchParams(window.location.search).get("post") === "1"
+    );
   }, []);
 
   const loadMessages = useCallback(async () => {
@@ -92,7 +96,7 @@ export default function Page() {
   }
 
   return (
-    <div className="board">
+    <div className={`board${postOnly ? " board--post-only" : ""}`}>
       <header className="board__header">
         <div className="board__heading">
         <h1>HSA Write Board</h1>
@@ -393,6 +397,21 @@ export default function Page() {
           }
           .qr-panel {
             flex-basis: auto;
+          }
+          .board--post-only {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 24px;
+            padding-bottom: 24px;
+          }
+          .board--post-only .board__header,
+          .board--post-only .cork {
+            display: none;
+          }
+          .board--post-only .composer {
+            margin: 0 auto;
           }
         }
       `}</style>
