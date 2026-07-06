@@ -1,0 +1,401 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { QRCodeSVG } from "qrcode.react";
+
+const NOTE_COLORS = ["#FFE98A", "#FFB6A3", "#B8D8C6", "#E6D4F2", "#A9D8F5"];
+
+function colorForId(id) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  }
+  return NOTE_COLORS[hash % NOTE_COLORS.length];
+}
+
+function rotationForId(id) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 17 + id.charCodeAt(i)) >>> 0;
+  }
+  return (hash % 9) - 4; // -4deg to 4deg
+}
+
+function timeAgo(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+export default function Page() {
+  const [messages, setMessages] = useState([]);
+  const [name, setName] = useState("");
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [posting, setPosting] = useState(false);
+  const [error, setError] = useState("");
+  const [siteUrl, setSiteUrl] = useState("");
+
+  useEffect(() => {
+    setSiteUrl(window.location.origin + "/");
+  }, []);
+
+  const loadMessages = useCallback(async () => {
+    try {
+      const res = await fetch("/api/messages", { cache: "no-store" });
+      const data = await res.json();
+      if (res.ok) setMessages(data.messages || []);
+    } catch (e) {
+      // silent background refresh failure
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMessages();
+    const interval = setInterval(loadMessages, 8000);
+    return () => clearInterval(interval);
+  }, [loadMessages]);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    if (!name.trim() || !text.trim()) {
+      setError("Sign your name and write something first.");
+      return;
+    }
+    setPosting(true);
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, text }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "That note didn't stick. Try again.");
+      } else {
+        setMessages((prev) => [data.message, ...prev]);
+        setText("");
+      }
+    } catch (e) {
+      setError("That note didn't stick. Check your connection.");
+    } finally {
+      setPosting(false);
+    }
+  }
+
+  return (
+    <div className="board">
+      <header className="board__header">
+        <div className="board__heading">
+        <h1>HSA Write Board</h1>
+        <p>ส่งข้อความที่คุณประทับใจขึ้นมาบนนี้ได้เลย.</p>
+        </div>
+        <div className="qr-panel">
+          <div className="qr-panel__card">
+            {siteUrl ? (
+              <QRCodeSVG value={siteUrl} size={112} level="M" includeMargin />
+            ) : (
+              <div className="qr-panel__placeholder" />
+            )}
+          </div>
+        </div>
+      </header>
+
+      <section className="cork">
+        {loading && <p className="cork__status">Loading the board...</p>}
+        {!loading && messages.length === 0 && (
+          <p className="cork__status">
+            The board is empty. Be the first to pin a note.
+          </p>
+        )}
+        {messages.map((m) => (
+          <article
+            key={m.id}
+            className="note"
+            style={{
+              backgroundColor: colorForId(m.id),
+              transform: `rotate(${rotationForId(m.id)}deg)`,
+            }}
+          >
+            <span className="note__pin" />
+            <p className="note__text">{m.text}</p>
+            <div className="note__meta">
+              <span className="note__name">— {m.name}</span>
+              <span className="note__time">{timeAgo(m.createdAt)}</span>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <form className="composer" onSubmit={handleSubmit}>
+        <input
+          className="composer__name"
+          type="text"
+          placeholder="Your name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={40}
+        />
+        <textarea
+          className="composer__text"
+          placeholder="Write your note..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          maxLength={500}
+          rows={3}
+        />
+        <div className="composer__row">
+          {error && <span className="composer__error">{error}</span>}
+          <button type="submit" disabled={posting}>
+            {posting ? "Pinning..." : "Pin it"}
+          </button>
+        </div>
+      </form>
+
+      <style jsx global>{`
+        * {
+          box-sizing: border-box;
+        }
+        body {
+          margin: 0;
+          background: #1b2a2f;
+          background-image: radial-gradient(
+              circle at 1px 1px,
+              rgba(255, 255, 255, 0.035) 1px,
+              transparent 0
+            ),
+            radial-gradient(
+              circle at 30px 30px,
+              rgba(0, 0, 0, 0.12) 1px,
+              transparent 0
+            );
+          background-size: 6px 6px, 60px 60px;
+          font-family: "Space Grotesk", system-ui, sans-serif;
+          color: #f3ede1;
+          min-height: 100vh;
+        }
+      `}</style>
+
+      <style jsx>{`
+        .board {
+          width: 100%;
+          margin: 0 auto;
+          padding: 48px 24px 80px;
+        }
+        .board__header {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 20px;
+          margin-bottom: 36px;
+        }
+        .board__heading {
+          text-align: center;
+        }
+        .board__header h1 {
+          font-family: "Caveat", cursive;
+          font-size: 4rem;
+          margin: 0;
+          color: #e8b84b;
+          text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
+        }
+        .board__header p {
+          margin: 4px 0 0;
+          color: rgba(255, 255, 255, 0.92);
+          font-family: "Mali", cursive;
+          font-size: 1.1rem;
+          font-weight: 600;
+          line-height: 1.6;
+        }
+
+        .qr-panel {
+          flex: 0 0 auto;
+          background: #f3ede1;
+          border-radius: 12px;
+          padding: 8px;
+          text-align: center;
+          box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+          position: relative;
+        }
+        .qr-panel__card {
+          display: inline-flex;
+          background: #fff;
+          border-radius: 8px;
+        }
+        .qr-panel__placeholder {
+          width: 112px;
+          height: 112px;
+          background: repeating-linear-gradient(
+            45deg,
+            #eee,
+            #eee 10px,
+            #f7f7f7 10px,
+            #f7f7f7 20px
+          );
+          border-radius: 4px;
+        }
+        .composer {
+          width: 100%;
+          max-width: 640px;
+          background: #24363c;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 12px;
+          padding: 20px;
+          margin: 48px auto 0;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+        .composer__name {
+          width: 100%;
+          padding: 10px 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: #1b2a2f;
+          color: #f3ede1;
+          font-family: inherit;
+          font-size: 0.95rem;
+          margin-bottom: 10px;
+        }
+        .composer__text {
+          width: 100%;
+          padding: 10px 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: #1b2a2f;
+          color: #f3ede1;
+          font-family: inherit;
+          font-size: 1rem;
+          resize: vertical;
+        }
+        .composer__name:focus,
+        .composer__text:focus {
+          outline: 2px solid #e8b84b;
+          outline-offset: 1px;
+        }
+        .composer__row {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 16px;
+          margin-top: 12px;
+        }
+        .composer__error {
+          color: #e2725b;
+          font-size: 0.85rem;
+          margin-right: auto;
+        }
+        .composer button {
+          background: #e8b84b;
+          color: #1b2a2f;
+          border: none;
+          border-radius: 8px;
+          padding: 10px 22px;
+          font-weight: 700;
+          font-size: 0.95rem;
+          cursor: pointer;
+          font-family: inherit;
+          transition: transform 0.15s ease;
+        }
+        .composer button:hover:not(:disabled) {
+          transform: translateY(-1px);
+        }
+        .composer button:disabled {
+          opacity: 0.6;
+          cursor: default;
+        }
+
+        .cork {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 28px;
+        }
+        .cork__status {
+          width: 100%;
+          text-align: center;
+          color: rgba(243, 237, 225, 0.6);
+          font-size: 0.95rem;
+        }
+
+        .note {
+          flex: 1 1 180px;
+          max-width: 240px;
+          position: relative;
+          padding: 20px 18px 16px;
+          border-radius: 3px;
+          box-shadow:
+            0 4px 8px rgba(0, 0, 0, 0.28),
+            0 14px 28px rgba(0, 0, 0, 0.38);
+          min-height: 140px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        .note__pin {
+          position: absolute;
+          top: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          background: #b0392a;
+          box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
+        }
+        .note__text {
+          font-family: "Mali", "Caveat", cursive;
+          font-weight: 600;
+          font-size: 1.4rem;
+          line-height: 1.3;
+          color: #102a32;
+          margin: 8px 0 14px;
+          word-break: break-word;
+        }
+        .note__meta {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          font-family: "Space Grotesk", sans-serif;
+        }
+        .note__name {
+          font-weight: 700;
+          font-size: 0.8rem;
+          color: #102a32;
+        }
+        .note__time {
+          font-size: 0.7rem;
+          color: rgba(16, 42, 50, 0.72);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .composer button {
+            transition: none;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .board__header {
+            flex-direction: column;
+            gap: 24px;
+          }
+          .board__heading {
+            text-align: center;
+          }
+          .board__header h1 {
+            font-size: 3.25rem;
+          }
+          .qr-panel {
+            flex-basis: auto;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
