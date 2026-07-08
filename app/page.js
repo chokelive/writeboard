@@ -102,20 +102,23 @@ export default function Page() {
         <div className="qr-panel qr-panel--front" aria-label="Front QR code">
           <div className="qr-panel__card">
             {siteUrl ? (
-              <QRCodeSVG value={siteUrl} size={112} level="M" includeMargin />
+              <QRCodeSVG value={siteUrl} size={150} level="M" includeMargin />
             ) : (
               <div className="qr-panel__placeholder" />
             )}
           </div>
         </div>
         <div className="board__heading">
-        <h1>RESULT WRITE BOARD - by HSA Mini-factory</h1>
+        <h1>
+          <span>RESULT WRITE BOARD</span>
+          <span>HSA Mini-Factory</span>
+        </h1>
         <p>บอกความภูมิใจหรือความสำเร็จในหนึ่งปีที่ผ่านมา</p>
         </div>
         <div className="qr-panel qr-panel--back" aria-label="Back QR code">
           <div className="qr-panel__card">
             {siteUrl ? (
-              <QRCodeSVG value={siteUrl} size={112} level="M" includeMargin />
+              <QRCodeSVG value={siteUrl} size={150} level="M" includeMargin />
             ) : (
               <div className="qr-panel__placeholder" />
             )}
@@ -239,6 +242,9 @@ export default function Page() {
           color: #e8b84b;
           text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
         }
+        .board__header h1 span {
+          display: block;
+        }
         .board__header p {
           margin: 4px 0 0;
           color: rgba(255, 255, 255, 0.92);
@@ -263,8 +269,8 @@ export default function Page() {
           border-radius: 8px;
         }
         .qr-panel__placeholder {
-          width: 112px;
-          height: 112px;
+          width: 150px;
+          height: 150px;
           background: repeating-linear-gradient(
             45deg,
             #eee,
