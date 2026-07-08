@@ -187,7 +187,7 @@ export default function Page() {
         <div className="composer__row">
           {error && <span className="composer__error">{error}</span>}
           <button type="submit" disabled={posting}>
-            {posting ? "Pinning..." : "Pin it"}
+            {posting ? "Pinning..." : "ส่งไปเลย"}
           </button>
         </div>
       </form>
