@@ -99,11 +99,20 @@ export default function Page() {
   return (
     <div className={`board${postOnly ? " board--post-only" : ""}`}>
       <header className="board__header">
+        <div className="qr-panel qr-panel--front" aria-label="Front QR code">
+          <div className="qr-panel__card">
+            {siteUrl ? (
+              <QRCodeSVG value={siteUrl} size={112} level="M" includeMargin />
+            ) : (
+              <div className="qr-panel__placeholder" />
+            )}
+          </div>
+        </div>
         <div className="board__heading">
-        <h1>HSA RESULT WRITE BOARD - develop by HSA Mini-fac </h1>
+        <h1>RESULT WRITE BOARD - by HSA Mini-factory</h1>
         <p>บอกความภูมิใจหรือความสำเร็จในหนึ่งปีที่ผ่านมา</p>
         </div>
-        <div className="qr-panel">
+        <div className="qr-panel qr-panel--back" aria-label="Back QR code">
           <div className="qr-panel__card">
             {siteUrl ? (
               <QRCodeSVG value={siteUrl} size={112} level="M" includeMargin />
@@ -214,15 +223,18 @@ export default function Page() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 20px;
+          gap: 32px;
           margin-bottom: 36px;
         }
         .board__heading {
           text-align: center;
+          max-width: 920px;
         }
         .board__header h1 {
-          font-family: "Caveat", cursive;
-          font-size: 4rem;
+          font-family: "Space Grotesk", system-ui, sans-serif;
+          font-size: 4.5rem;
+          font-weight: 700;
+          line-height: 1.05;
           margin: 0;
           color: #e8b84b;
           text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
@@ -231,7 +243,7 @@ export default function Page() {
           margin: 4px 0 0;
           color: rgba(255, 255, 255, 0.92);
           font-family: "Mali", cursive;
-          font-size: 1.1rem;
+          font-size: 1.6rem;
           font-weight: 600;
           line-height: 1.6;
         }
@@ -432,7 +444,10 @@ export default function Page() {
             text-align: center;
           }
           .board__header h1 {
-            font-size: 3.25rem;
+            font-size: 3.5rem;
+          }
+          .board__header p {
+            font-size: 1.35rem;
           }
           .qr-panel {
             flex-basis: auto;
