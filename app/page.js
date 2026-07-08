@@ -100,7 +100,7 @@ export default function Page() {
     <div className={`board${postOnly ? " board--post-only" : ""}`}>
       <header className="board__header">
         <div className="board__heading">
-        <h1>HSA Write Board</h1>
+        <h1>HSA RESULT WRITE BOARD - develop by HSA Mini-fac </h1>
         <p>บอกความภูมิใจหรือความสำเร็จในหนึ่งปีที่ผ่านมา</p>
         </div>
         <div className="qr-panel">
