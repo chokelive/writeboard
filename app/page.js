@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 const NOTE_COLORS = ["#FFE98A", "#FFB6A3", "#B8D8C6", "#E6D4F2", "#A9D8F5"];
+const QR_CODE_SIZE = 210;
 const EMOJIS = ["😀", "😍", "🥰", "😂", "👏", "❤️", "👍", "🎉", "✨", "🙏"];
 
 function colorForId(id) {
@@ -35,6 +36,7 @@ function timeAgo(iso) {
 
 export default function Page() {
   const [messages, setMessages] = useState([]);
+  const [totalMessages, setTotalMessages] = useState(null);
   const [name, setName] = useState("");
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
@@ -55,7 +57,14 @@ export default function Page() {
     try {
       const res = await fetch("/api/messages", { cache: "no-store" });
       const data = await res.json();
-      if (res.ok) setMessages(data.messages || []);
+      if (res.ok) {
+        setMessages(data.messages || []);
+        setTotalMessages(
+          typeof data.total === "number"
+            ? data.total
+            : (data.messages || []).length
+        );
+      }
     } catch (e) {
       // silent background refresh failure
     } finally {
@@ -89,6 +98,9 @@ export default function Page() {
         setError(data.error || "That note didn't stick. Try again.");
       } else {
         setMessages((prev) => [data.message, ...prev]);
+        setTotalMessages((current) =>
+          typeof data.total === "number" ? data.total : (current || 0) + 1
+        );
         setText("");
         setSuccess("Post completed เรียบร้อย แล้วจ้าา...");
       }
@@ -105,7 +117,12 @@ export default function Page() {
         <div className="qr-panel qr-panel--front" aria-label="Front QR code">
           <div className="qr-panel__card">
             {siteUrl ? (
-              <QRCodeSVG value={siteUrl} size={150} level="M" includeMargin />
+              <QRCodeSVG
+                value={siteUrl}
+                size={QR_CODE_SIZE}
+                level="M"
+                includeMargin
+              />
             ) : (
               <div className="qr-panel__placeholder" />
             )}
@@ -118,11 +135,19 @@ export default function Page() {
         </h1>
         <p>Scan QR-Code แล้วบอกความภูมิใจหรือความสำเร็จในหนึ่งปีที่ผ่านมา</p>
         <p>ลุ้น Lucky Draw เป็นตุ๊กตาน่ารักๆ</p>
+        <p className="board__total">
+          Total messages: {totalMessages === null ? "..." : totalMessages}
+        </p>
         </div>
         <div className="qr-panel qr-panel--back" aria-label="Back QR code">
           <div className="qr-panel__card">
             {siteUrl ? (
-              <QRCodeSVG value={siteUrl} size={150} level="M" includeMargin />
+              <QRCodeSVG
+                value={siteUrl}
+                size={QR_CODE_SIZE}
+                level="M"
+                includeMargin
+              />
             ) : (
               <div className="qr-panel__placeholder" />
             )}
@@ -265,6 +290,21 @@ export default function Page() {
           font-weight: 600;
           line-height: 1.6;
         }
+        .board__header .board__total {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          margin-top: 12px;
+          padding: 6px 14px;
+          border: 1px solid rgba(232, 184, 75, 0.45);
+          border-radius: 999px;
+          color: #e8b84b;
+          background: rgba(232, 184, 75, 0.12);
+          font-family: "Space Grotesk", system-ui, sans-serif;
+          font-size: 1.15rem;
+          font-weight: 700;
+          line-height: 1.2;
+        }
 
         .qr-panel {
           flex: 0 0 auto;
@@ -281,8 +321,8 @@ export default function Page() {
           border-radius: 8px;
         }
         .qr-panel__placeholder {
-          width: 150px;
-          height: 150px;
+          width: ${QR_CODE_SIZE}px;
+          height: ${QR_CODE_SIZE}px;
           background: repeating-linear-gradient(
             45deg,
             #eee,
@@ -472,6 +512,9 @@ export default function Page() {
           }
           .board__header p {
             font-size: 1.35rem;
+          }
+          .board__header .board__total {
+            font-size: 1rem;
           }
           .qr-panel {
             flex-basis: auto;

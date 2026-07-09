@@ -7,11 +7,14 @@ const MAX_MESSAGES = 300;
 
 export async function GET() {
   try {
-    const raw = await redis.lrange(BOARD_KEY, 0, MAX_MESSAGES - 1);
+    const [raw, total] = await Promise.all([
+      redis.lrange(BOARD_KEY, 0, MAX_MESSAGES - 1),
+      redis.llen(BOARD_KEY),
+    ]);
     const messages = raw.map((item) =>
       typeof item === "string" ? JSON.parse(item) : item
     );
-    return NextResponse.json({ messages });
+    return NextResponse.json({ messages, total });
   } catch (err) {
     console.error(err);
     return NextResponse.json(
@@ -42,8 +45,9 @@ export async function POST(request) {
     };
 
     await redis.lpush(BOARD_KEY, JSON.stringify(entry));
+    const total = await redis.llen(BOARD_KEY);
 
-    return NextResponse.json({ message: entry }, { status: 201 });
+    return NextResponse.json({ message: entry, total }, { status: 201 });
   } catch (err) {
     console.error(err);
     return NextResponse.json(
