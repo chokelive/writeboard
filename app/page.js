@@ -114,6 +114,7 @@ export default function Page() {
           <span>HSA Mini-Factory</span>
         </h1>
         <p>Scan QR-Code แล้วบอกความภูมิใจหรือความสำเร็จในหนึ่งปีที่ผ่านมา</p>
+        <p>ลุ้น Lucky Draw เป็นตุ๊กตาน่ารักๆ</p>
         </div>
         <div className="qr-panel qr-panel--back" aria-label="Back QR code">
           <div className="qr-panel__card">
