@@ -42,7 +42,6 @@ export async function POST(request) {
     };
 
     await redis.lpush(BOARD_KEY, JSON.stringify(entry));
-    await redis.ltrim(BOARD_KEY, 0, MAX_MESSAGES - 1);
 
     return NextResponse.json({ message: entry }, { status: 201 });
   } catch (err) {
