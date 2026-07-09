@@ -156,7 +156,7 @@ export default function Page() {
         <input
           className="composer__name"
           type="text"
-          placeholder="Your name"
+          placeholder="Your EN"
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={40}
@@ -178,7 +178,7 @@ export default function Page() {
         </div>
         <textarea
           className="composer__text"
-          placeholder="Write your note..."
+          placeholder="Write your note... เขียนความประทับใจ"
           value={text}
           onChange={(e) => setText(e.target.value)}
           maxLength={500}
