@@ -40,6 +40,7 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
   const [postOnly, setPostOnly] = useState(false);
 
@@ -71,6 +72,7 @@ export default function Page() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setSuccess("");
     if (!name.trim() || !text.trim()) {
       setError("Sign your name and write something first.");
       return;
@@ -88,6 +90,7 @@ export default function Page() {
       } else {
         setMessages((prev) => [data.message, ...prev]);
         setText("");
+        setSuccess("Post completed เรียบร้อย แล้วจ้าา...");
       }
     } catch (e) {
       setError("That note didn't stick. Check your connection.");
@@ -159,7 +162,10 @@ export default function Page() {
           type="text"
           placeholder="Your EN"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            setSuccess("");
+          }}
           maxLength={40}
         />
         <div className="composer__emojis" aria-label="Add an emoji">
@@ -169,9 +175,10 @@ export default function Page() {
               type="button"
               className="composer__emoji-button"
               aria-label={`Add ${emoji}`}
-              onClick={() =>
-                setText((current) => `${current}${emoji}`.slice(0, 500))
-              }
+              onClick={() => {
+                setText((current) => `${current}${emoji}`.slice(0, 500));
+                setSuccess("");
+              }}
             >
               {emoji}
             </button>
@@ -181,12 +188,16 @@ export default function Page() {
           className="composer__text"
           placeholder="Write your note... เขียนความประทับใจ"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            setSuccess("");
+          }}
           maxLength={500}
           rows={3}
         />
         <div className="composer__row">
           {error && <span className="composer__error">{error}</span>}
+          {success && <span className="composer__success">{success}</span>}
           <button type="submit" disabled={posting}>
             {posting ? "Pinning..." : "Post ส่งไปเลย"}
           </button>
@@ -351,6 +362,12 @@ export default function Page() {
         .composer__error {
           color: #e2725b;
           font-size: 0.85rem;
+          margin-right: auto;
+        }
+        .composer__success {
+          color: #8fe2a0;
+          font-size: 0.95rem;
+          font-weight: 700;
           margin-right: auto;
         }
         .composer button {
