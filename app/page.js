@@ -185,7 +185,7 @@ export default function Page() {
         <input
           className="composer__name"
           type="text"
-          placeholder="Your EN"
+          placeholder="Your EN ใส่ EN ตรงนี้ด้วยจ้าาา."
           value={name}
           onChange={(e) => {
             setName(e.target.value);
@@ -211,7 +211,7 @@ export default function Page() {
         </div>
         <textarea
           className="composer__text"
-          placeholder="Write your note... เขียนความประทับใจ"
+          placeholder="Write your note... เขียนบอกความภูมิใจ หรือความสำเร็จในหนึ่งปีที่ผ่านมา ลุ้นรับตุ๊กตาน่ารักๆ"
           value={text}
           onChange={(e) => {
             setText(e.target.value);
