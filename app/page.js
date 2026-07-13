@@ -520,19 +520,47 @@ export default function Page() {
             flex-basis: auto;
           }
           .board--post-only {
+            width: 100vw;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding-top: 24px;
-            padding-bottom: 24px;
+            padding: 0;
           }
           .board--post-only .board__header,
           .board--post-only .cork {
             display: none;
           }
           .board--post-only .composer {
-            margin: 0 auto;
+            width: 100%;
+            max-width: none;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 20px 16px;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+          }
+          .board--post-only .composer__text {
+            flex: 1;
+            min-height: 180px;
+          }
+          .board--post-only .composer__row {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 10px;
+          }
+          .board--post-only .composer__error,
+          .board--post-only .composer__success {
+            margin-right: 0;
+          }
+          .board--post-only .composer button[type="submit"] {
+            width: 100%;
+            min-height: 48px;
           }
         }
       `}</style>
