@@ -233,7 +233,7 @@ export default function Page() {
         </div>
         <textarea
           className="composer__text"
-          placeholder="Write your note... เขียนบอกความภูมิใจ หรือความสำเร็จในหนึ่งปีที่ผ่านมา ลุ้นรับตุ๊กตาน่ารักๆ"
+          placeholder="Write your note... เขียนตรงนี้จ้าา บอกความภูมิใจ หรือความสำเร็จในหนึ่งปีที่ผ่านมา"
           value={text}
           onChange={(e) => {
             setText(e.target.value);
