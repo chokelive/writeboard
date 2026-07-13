@@ -5,6 +5,13 @@ import { QRCodeSVG } from "qrcode.react";
 
 const NOTE_COLORS = ["#FFE98A", "#FFB6A3", "#B8D8C6", "#E6D4F2", "#A9D8F5"];
 const QR_CODE_SIZE = 210;
+const TIME_ZONE = "Asia/Bangkok";
+const bangkokDateFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 const EMOJIS = ["😀", "😍", "🥰", "😂", "👏", "❤️", "👍", "🎉", "✨", "🙏"];
 
 function colorForId(id) {
@@ -34,19 +41,23 @@ function timeAgo(iso) {
   return `${days}d ago`;
 }
 
+function dateKeyInTimeZone(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  const parts = bangkokDateFormatter.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+  return `${year}-${month}-${day}`;
+}
+
 function isToday(iso) {
-  const date = new Date(iso);
-  const today = new Date();
-  return (
-    date.getFullYear() === today.getFullYear() &&
-    date.getMonth() === today.getMonth() &&
-    date.getDate() === today.getDate()
-  );
+  return dateKeyInTimeZone(iso) === dateKeyInTimeZone(new Date());
 }
 
 export default function Page() {
   const [messages, setMessages] = useState([]);
   const [totalMessages, setTotalMessages] = useState(null);
+  const [todayTotalMessages, setTodayTotalMessages] = useState(null);
   const [name, setName] = useState("");
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
@@ -55,9 +66,11 @@ export default function Page() {
   const [success, setSuccess] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
   const [postOnly, setPostOnly] = useState(false);
-  const todayMessages = messages.filter((message) =>
+  const loadedTodayMessages = messages.filter((message) =>
     isToday(message.createdAt)
   ).length;
+  const todayMessages =
+    todayTotalMessages === null ? loadedTodayMessages : todayTotalMessages;
 
   useEffect(() => {
     setSiteUrl(window.location.origin + "/?post=1");
@@ -76,6 +89,9 @@ export default function Page() {
           typeof data.total === "number"
             ? data.total
             : (data.messages || []).length
+        );
+        setTodayTotalMessages(
+          typeof data.todayTotal === "number" ? data.todayTotal : null
         );
       }
     } catch (e) {
@@ -114,6 +130,15 @@ export default function Page() {
         setTotalMessages((current) =>
           typeof data.total === "number" ? data.total : (current || 0) + 1
         );
+        setTodayTotalMessages((current) => {
+          if (typeof data.todayTotal === "number") {
+            return data.todayTotal;
+          }
+          if (!isToday(data.message.createdAt)) {
+            return current;
+          }
+          return (current === null ? loadedTodayMessages : current) + 1;
+        });
         setText("");
         setSuccess("Completed ข้อความถูกส่งไปที่หน้าจอ TV แล้วจ้าา...");
       }
@@ -153,7 +178,8 @@ export default function Page() {
             Total messages: {totalMessages === null ? "..." : totalMessages}
           </p>
           <p className="board__total">
-            Today messages: {loading ? "..." : todayMessages}
+            Today messages:{" "}
+            {loading && todayTotalMessages === null ? "..." : todayMessages}
           </p>
         </div>
         </div>
