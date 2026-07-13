@@ -96,7 +96,7 @@ export default function Page() {
     setError("");
     setSuccess("");
     if (!name.trim() || !text.trim()) {
-      setError("Sign your name and write something first.");
+      setError("ใส่ EN ก่อน จ้าาา.");
       return;
     }
     setPosting(true);
@@ -115,7 +115,7 @@ export default function Page() {
           typeof data.total === "number" ? data.total : (current || 0) + 1
         );
         setText("");
-        setSuccess("Post completed เรียบร้อย แล้วจ้าา...");
+        setSuccess("Completed ข้อความถูกส่งไปที่หน้าจอ TV แล้วจ้าา...");
       }
     } catch (e) {
       setError("That note didn't stick. Check your connection.");
