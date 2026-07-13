@@ -34,6 +34,16 @@ function timeAgo(iso) {
   return `${days}d ago`;
 }
 
+function isToday(iso) {
+  const date = new Date(iso);
+  const today = new Date();
+  return (
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate()
+  );
+}
+
 export default function Page() {
   const [messages, setMessages] = useState([]);
   const [totalMessages, setTotalMessages] = useState(null);
@@ -45,6 +55,9 @@ export default function Page() {
   const [success, setSuccess] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
   const [postOnly, setPostOnly] = useState(false);
+  const todayMessages = messages.filter((message) =>
+    isToday(message.createdAt)
+  ).length;
 
   useEffect(() => {
     setSiteUrl(window.location.origin + "/?post=1");
@@ -135,9 +148,14 @@ export default function Page() {
         </h1>
         <p>Scan QR-Code แล้วบอกความภูมิใจหรือความสำเร็จในหนึ่งปีที่ผ่านมา</p>
         <p>ลุ้น Lucky Draw เป็นตุ๊กตาน่ารักๆ</p>
-        <p className="board__total">
-          Total messages: {totalMessages === null ? "..." : totalMessages}
-        </p>
+        <div className="board__stats" aria-label="Message stats">
+          <p className="board__total">
+            Total messages: {totalMessages === null ? "..." : totalMessages}
+          </p>
+          <p className="board__total">
+            Today messages: {loading ? "..." : todayMessages}
+          </p>
+        </div>
         </div>
         <div className="qr-panel qr-panel--back" aria-label="Back QR code">
           <div className="qr-panel__card">
@@ -182,10 +200,14 @@ export default function Page() {
       </section>
 
       <form className="composer" onSubmit={handleSubmit}>
+        <h2 className="composer__title">
+          เขียนบอกความภูมิใจ หรือความสำเร็จในหนึ่งปีที่ผ่านมา
+          ลุ้นรับตุ๊กตาน่ารักๆ
+        </h2>
         <input
           className="composer__name"
           type="text"
-          placeholder="Your EN ใส่ EN ตรงนี้ด้วยจ้าาา."
+          placeholder="ใส่ EN ตรงนี้ด้วยจ้าาา."
           value={name}
           onChange={(e) => {
             setName(e.target.value);
@@ -290,11 +312,19 @@ export default function Page() {
           font-weight: 600;
           line-height: 1.6;
         }
+        .board__stats {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 12px;
+        }
         .board__header .board__total {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          margin-top: 12px;
+          margin: 0;
           padding: 6px 14px;
           border: 1px solid rgba(232, 184, 75, 0.45);
           border-radius: 999px;
@@ -341,6 +371,15 @@ export default function Page() {
           padding: 20px;
           margin: 48px auto 0;
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+        .composer__title {
+          margin: 0 0 14px;
+          color: #f3ede1;
+          font-family: "Mali", cursive;
+          font-size: 1.35rem;
+          font-weight: 700;
+          line-height: 1.45;
+          text-align: center;
         }
         .composer__name {
           width: 100%;
@@ -516,6 +555,9 @@ export default function Page() {
           .board__header .board__total {
             font-size: 1rem;
           }
+          .board__stats {
+            gap: 8px;
+          }
           .qr-panel {
             flex-basis: auto;
           }
@@ -541,18 +583,44 @@ export default function Page() {
             flex-direction: column;
             margin: 0;
             padding: 20px 16px;
-            border: 0;
-            border-radius: 0;
-            box-shadow: none;
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
+          }
+          .board--post-only .composer__title {
+            margin-bottom: 18px;
+            color: #e8b84b;
+            font-size: 1.55rem;
+            line-height: 1.5;
+            text-align: left;
+          }
+          .board--post-only .composer__name {
+            min-height: 48px;
+            padding: 12px 14px;
+            font-size: 1.05rem;
+            margin-bottom: 14px;
+          }
+          .board--post-only .composer__emojis {
+            gap: 8px;
+            margin-bottom: 14px;
+          }
+          .board--post-only .composer .composer__emoji-button {
+            width: 42px;
+            height: 42px;
+            font-size: 1.35rem;
           }
           .board--post-only .composer__text {
             flex: 1;
             min-height: 180px;
+            padding: 14px;
+            font-size: 1.1rem;
+            line-height: 1.55;
           }
           .board--post-only .composer__row {
             align-items: stretch;
             flex-direction: column;
             gap: 10px;
+            margin-top: 14px;
           }
           .board--post-only .composer__error,
           .board--post-only .composer__success {
