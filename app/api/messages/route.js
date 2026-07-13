@@ -5,6 +5,7 @@ const redis = Redis.fromEnv();
 const BOARD_KEY = "writeboard:messages";
 const MAX_MESSAGES = 300;
 const TODAY_COUNT_BATCH_SIZE = 500;
+const EXPORT_BATCH_SIZE = 500;
 const TIME_ZONE = "Asia/Bangkok";
 
 const bangkokDateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -12,6 +13,16 @@ const bangkokDateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
+});
+const bangkokDateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
 });
 
 function dateKeyInTimeZone(value) {
@@ -23,8 +34,39 @@ function dateKeyInTimeZone(value) {
   return `${year}-${month}-${day}`;
 }
 
+function dateTimeInTimeZone(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  const parts = bangkokDateTimeFormatter.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+  const hour = parts.find((part) => part.type === "hour")?.value;
+  const minute = parts.find((part) => part.type === "minute")?.value;
+  const second = parts.find((part) => part.type === "second")?.value;
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+}
+
 function parseMessage(item) {
   return typeof item === "string" ? JSON.parse(item) : item;
+}
+
+function messageToCsvValue(value) {
+  return `"${String(value ?? "").replace(/"/g, '""')}"`;
+}
+
+function messagesToCsv(messages) {
+  const rows = [
+    ["createdAt", "name", "text"],
+    ...messages.map((message) => [
+      dateTimeInTimeZone(message.createdAt),
+      message.name,
+      message.text,
+    ]),
+  ];
+
+  return rows
+    .map((row) => row.map(messageToCsvValue).join(","))
+    .join("\r\n");
 }
 
 async function countTodayMessages(total) {
@@ -55,8 +97,57 @@ async function countTodayMessages(total) {
   return todayTotal;
 }
 
-export async function GET() {
+async function getMessagesForExport(scope) {
+  const todayKey = dateKeyInTimeZone(new Date());
+  const total = await redis.llen(BOARD_KEY);
+  const messages = [];
+
+  for (let start = 0; start < total; start += EXPORT_BATCH_SIZE) {
+    const end = Math.min(start + EXPORT_BATCH_SIZE - 1, total - 1);
+    const raw = await redis.lrange(BOARD_KEY, start, end);
+
+    for (const item of raw) {
+      const message = parseMessage(item);
+
+      if (scope === "today") {
+        const messageDateKey = dateKeyInTimeZone(message.createdAt);
+        if (messageDateKey === todayKey) {
+          messages.push(message);
+          continue;
+        }
+
+        if (messageDateKey < todayKey) {
+          return messages;
+        }
+
+        continue;
+      }
+
+      messages.push(message);
+    }
+  }
+
+  return messages;
+}
+
+export async function GET(request) {
   try {
+    const exportScope = new URL(request.url).searchParams.get("export");
+
+    if (exportScope === "today" || exportScope === "all") {
+      const messages = await getMessagesForExport(exportScope);
+      const csv = `\uFEFF${messagesToCsv(messages)}`;
+      const filename =
+        exportScope === "today" ? "today-messages.csv" : "total-messages.csv";
+
+      return new NextResponse(csv, {
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+        },
+      });
+    }
+
     const [raw, total] = await Promise.all([
       redis.lrange(BOARD_KEY, 0, MAX_MESSAGES - 1),
       redis.llen(BOARD_KEY),

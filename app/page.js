@@ -54,6 +54,10 @@ function isToday(iso) {
   return dateKeyInTimeZone(iso) === dateKeyInTimeZone(new Date());
 }
 
+function dateStampInTimeZone() {
+  return dateKeyInTimeZone(new Date());
+}
+
 export default function Page() {
   const [messages, setMessages] = useState([]);
   const [totalMessages, setTotalMessages] = useState(null);
@@ -106,6 +110,35 @@ export default function Page() {
     const interval = setInterval(loadMessages, 8000);
     return () => clearInterval(interval);
   }, [loadMessages]);
+
+  async function handleExport(scope) {
+    setError("");
+    setSuccess("");
+
+    try {
+      const res = await fetch(`/api/messages?export=${scope}`, {
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        setError("Could not export messages. Try again.");
+        return;
+      }
+
+      const csv = await res.blob();
+      const url = URL.createObjectURL(csv);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${scope === "today" ? "today" : "total"}-messages-${dateStampInTimeZone()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setSuccess("Export ready.");
+    } catch (e) {
+      setError("Could not export messages. Check your connection.");
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -174,13 +207,25 @@ export default function Page() {
         <p>Scan QR-Code แล้วบอกความภูมิใจหรือความสำเร็จในหนึ่งปีที่ผ่านมา</p>
         <p>ลุ้น Lucky Draw เป็นตุ๊กตาน่ารักๆ</p>
         <div className="board__stats" aria-label="Message stats">
-          <p className="board__total">
+          <button
+            type="button"
+            className="board__total"
+            onClick={() => handleExport("all")}
+            disabled={loading || !totalMessages}
+            aria-label="Export total messages"
+          >
             Total messages: {totalMessages === null ? "..." : totalMessages}
-          </p>
-          <p className="board__total">
+          </button>
+          <button
+            type="button"
+            className="board__total"
+            onClick={() => handleExport("today")}
+            disabled={loading || todayMessages === 0}
+            aria-label="Export today messages"
+          >
             Today messages:{" "}
             {loading && todayTotalMessages === null ? "..." : todayMessages}
-          </p>
+          </button>
         </div>
         </div>
         <div className="qr-panel qr-panel--back" aria-label="Back QR code">
@@ -360,6 +405,18 @@ export default function Page() {
           font-size: 1.15rem;
           font-weight: 700;
           line-height: 1.2;
+          cursor: pointer;
+          transition:
+            opacity 0.15s ease,
+            transform 0.15s ease;
+        }
+        .board__header .board__total:hover:not(:disabled) {
+          transform: translateY(-1px);
+          background: rgba(232, 184, 75, 0.2);
+        }
+        .board__header .board__total:disabled {
+          cursor: default;
+          opacity: 0.7;
         }
 
         .qr-panel {
