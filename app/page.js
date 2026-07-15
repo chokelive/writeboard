@@ -200,33 +200,44 @@ export default function Page() {
           </div>
         </div>
         <div className="board__heading">
-        <h1>
-          <span>RESULT WRITE BOARD</span>
-          <span>HSA Mini-Factory</span>
-        </h1>
-        <p>Scan QR-Code แล้วบอกความภูมิใจหรือความสำเร็จในหนึ่งปีที่ผ่านมา</p>
-        <p>ลุ้น Lucky Draw เป็นตุ๊กตาน่ารักๆ</p>
-        <div className="board__stats" aria-label="Message stats">
-          <button
-            type="button"
-            className="board__total"
-            onClick={() => handleExport("all")}
-            disabled={loading || !totalMessages}
-            aria-label="Export total messages"
-          >
-            Total messages: {totalMessages === null ? "..." : totalMessages}
-          </button>
-          <button
-            type="button"
-            className="board__total"
-            onClick={() => handleExport("today")}
-            disabled={loading || todayMessages === 0}
-            aria-label="Export today messages"
-          >
-            Today messages:{" "}
-            {loading && todayTotalMessages === null ? "..." : todayMessages}
-          </button>
-        </div>
+          <h1>
+            <span>RESULT WRITE BOARD</span>
+            <span>HSA Mini-Factory</span>
+          </h1>
+          <div className="board__intro">
+            <p className="board__intro-en">
+              Scan the QR code and share your pride or achievements over the
+              past year.
+            </p>
+            <p className="board__intro-th">
+              สแกน QR code แล้วบอกความภูมิใจหรือความสำเร็จในหนึ่งปีที่ผ่านมา
+            </p>
+            <p className="board__intro-en">
+              Get a chance to win a lucky draw.
+            </p>
+            <p className="board__intro-th">ลุ้น Lucky Draw รับรางวัล</p>
+          </div>
+          <div className="board__stats" aria-label="Message stats">
+            <button
+              type="button"
+              className="board__total"
+              onClick={() => handleExport("all")}
+              disabled={loading || !totalMessages}
+              aria-label="Export total messages"
+            >
+              Total messages: {totalMessages === null ? "..." : totalMessages}
+            </button>
+            <button
+              type="button"
+              className="board__total"
+              onClick={() => handleExport("today")}
+              disabled={loading || todayMessages === 0}
+              aria-label="Export today messages"
+            >
+              Today messages:{" "}
+              {loading && todayTotalMessages === null ? "..." : todayMessages}
+            </button>
+          </div>
         </div>
         <div className="qr-panel qr-panel--back" aria-label="Back QR code">
           <div className="qr-panel__card">
@@ -272,13 +283,21 @@ export default function Page() {
 
       <form className="composer" onSubmit={handleSubmit}>
         <h2 className="composer__title">
-          เขียนบอกความภูมิใจ หรือความสำเร็จในหนึ่งปีที่ผ่านมา
-          ลุ้นรับตุ๊กตาน่ารักๆ
+          <span>
+            Share your pride or achievements over the past year.
+          </span>
+          <span>
+            เขียนบอกความภูมิใจ หรือความสำเร็จในหนึ่งปีที่ผ่านมา
+          </span>
+          <span>
+            Get a chance to win a lucky draw.
+          </span>
+          <span>ลุ้นรับรางวัล</span>
         </h2>
         <input
           className="composer__name"
           type="text"
-          placeholder="ใส่ EN ตรงนี้ด้วยจ้าาา."
+          placeholder="Enter your EN / ใส่ EN ตรงนี้ด้วยจ้าาา."
           value={name}
           onChange={(e) => {
             setName(e.target.value);
@@ -304,7 +323,7 @@ export default function Page() {
         </div>
         <textarea
           className="composer__text"
-          placeholder="Write your note... เขียนตรงนี้จ้าา บอกความภูมิใจ หรือความสำเร็จในหนึ่งปีที่ผ่านมา"
+          placeholder="Write your note here... / เขียนตรงนี้จ้าา บอกความภูมิใจ หรือความสำเร็จในหนึ่งปีที่ผ่านมา"
           value={text}
           onChange={(e) => {
             setText(e.target.value);
@@ -375,6 +394,9 @@ export default function Page() {
         .board__header h1 span {
           display: block;
         }
+        .board__intro {
+          margin-top: 14px;
+        }
         .board__header p {
           margin: 4px 0 0;
           color: rgba(255, 255, 255, 0.92);
@@ -382,6 +404,15 @@ export default function Page() {
           font-size: 1.6rem;
           font-weight: 600;
           line-height: 1.6;
+        }
+        .board__header .board__intro-en {
+          color: #f8df93;
+          font-family: "Space Grotesk", system-ui, sans-serif;
+          font-size: 1.45rem;
+          line-height: 1.35;
+        }
+        .board__header .board__intro-th {
+          margin-bottom: 10px;
         }
         .board__stats {
           display: flex;
@@ -458,11 +489,20 @@ export default function Page() {
         .composer__title {
           margin: 0 0 14px;
           color: #f3ede1;
-          font-family: "Mali", cursive;
           font-size: 1.35rem;
           font-weight: 700;
           line-height: 1.45;
           text-align: center;
+        }
+        .composer__title span {
+          display: block;
+          font-family: "Mali", cursive;
+        }
+        .composer__title span:nth-child(odd) {
+          color: #f8df93;
+          font-family: "Space Grotesk", system-ui, sans-serif;
+          font-size: 1.15rem;
+          line-height: 1.35;
         }
         .composer__name {
           width: 100%;
@@ -635,6 +675,9 @@ export default function Page() {
           .board__header p {
             font-size: 1.35rem;
           }
+          .board__header .board__intro-en {
+            font-size: 1.18rem;
+          }
           .board__header .board__total {
             font-size: 1rem;
           }
@@ -676,6 +719,9 @@ export default function Page() {
             font-size: 1.55rem;
             line-height: 1.5;
             text-align: left;
+          }
+          .board--post-only .composer__title span:nth-child(odd) {
+            font-size: 1.18rem;
           }
           .board--post-only .composer__name {
             min-height: 48px;
